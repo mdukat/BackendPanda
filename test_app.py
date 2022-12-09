@@ -1,32 +1,20 @@
 import unittest
-from unittest.mock import patch
-from app import app, log
+from os import environ
+from app import app, database
 
 class Test(unittest.TestCase):
 
-    def test_get_page(self):
-        response = app.test_client().get('/')
-        self.assertIn("<pre>Animals:", response.text)
-        assert response.status_code == 200
-    
-    @patch('app.add_animal')
-    def test_add_animal(self, mock_add_animal):
-        mock_add_animal.post.side_effect = log.append(f"Mocking add_animal function")
+    def test_db_add_element(self):
+        database.append({"name": "luka", "animal": "dog"})
+        self.assertEqual({"name": "luka", "animal": "dog"}, database.__getitem__(0))
+
+    def test_add_animal(self):
         payload = {
             "name":  "luka",
-            "animal": "dog",
-            "add_animal": "Add Animals"}
+            "animal": "dog"}
         response = app.test_client().post('/', data=payload)
-        self.assertIn("Mocking add_animal function", response.text)
-        assert response.status_code == 200
-
-    @patch('app.get_animals')
-    def test_get_animals(self, mock_get_animals):
-        mock_get_animals.post.side_effect = log.append(f"Mocking get_animals function")
-        payload = {
-            "get_animals": "Get Animals"}
-        response = app.test_client().post('/', data=payload)
-        self.assertIn("Mocking get_animals function", response.text)
+        print (response.text)
+        assert "[BACKEND] Name: luka Animal: dog added to the database" == response.text
         assert response.status_code == 200
 
 if __name__ == '__main__':
